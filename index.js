@@ -22,6 +22,7 @@ const maskCreditNumber = (creditNumber) => {
 
 // Lambda Handler
 exports.handler = async (event) => {
+console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
   const client = new Client(dbConfig);
 
   try {
