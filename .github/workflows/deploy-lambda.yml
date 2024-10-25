@@ -21,6 +21,6 @@ jobs:
       with:
         aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws_region: 'us-east-1'  # Cambia esto a tu región
+        aws_region: 'us-east-2'  # Cambia esto a tu región
         function_name: 'bbog-rlb-dynamo-stream-function'  # Nombre de tu Lambda
         zip_file: 'index.js'  # Archivo que contiene tu Lambda
