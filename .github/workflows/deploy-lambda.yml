@@ -16,6 +16,10 @@ jobs:
     - name: Install dependencies
       run: npm install
 
+      # Crear el archivo .zip con el código de la Lambda
+    - name: Create zip file
+      run: zip -r function.zip index.js node_modules/
+
     - name: Deploy to AWS Lambda
       uses: appleboy/lambda-action@master
       with:
