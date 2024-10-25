@@ -11,6 +11,7 @@ const dbConfig = {
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
+  ssl: { rejectUnauthorized: false }
 };
 
 // Función para enmascarar el número de crédito
