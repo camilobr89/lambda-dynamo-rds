@@ -1,5 +1,5 @@
 
-import { Client } from 'pg';
+const { Client } = require('pg');
 
 // El resto del código sigue igual
 
