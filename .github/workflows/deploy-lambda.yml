@@ -1,0 +1,26 @@
+name: Deploy Lambda Function
+
+on:
+  push:
+    branches:
+      - main  # Despliega en cada push a la rama "main"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Deploy to AWS Lambda
+      uses: appleboy/lambda-action@master
+      with:
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_region: 'us-east-1'  # Cambia esto a tu región
+        function_name: 'bbog-rlb-dynamo-stream-function'  # Nombre de tu Lambda
+        zip_file: 'index.js'  # Archivo que contiene tu Lambda
