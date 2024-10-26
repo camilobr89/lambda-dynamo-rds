@@ -1,5 +1,5 @@
 
-const { Client } = require('pg');
+const mysql = require('mysql2/promise');
 
 // El resto del código sigue igual
 
@@ -23,7 +23,7 @@ const maskCreditNumber = (creditNumber) => {
 // Lambda Handler
 exports.handler = async (event) => {
 console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
-  const client = new Client(dbConfig);
+  const client = new mysql(dbConfig);
 
   try {
     // Conectar a la base de datos
@@ -53,19 +53,18 @@ console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
             disbursement_id, request_id, identification_number, date, request_json, response_json, 
             status, credit_number, amount, term, rate
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-          ON CONFLICT (disbursement_id) 
-          DO UPDATE SET 
-            request_id = EXCLUDED.request_id,
-            identification_number = EXCLUDED.identification_number,
-            date = EXCLUDED.date,
-            request_json = EXCLUDED.request_json,
-            response_json = EXCLUDED.response_json,
-            status = EXCLUDED.status,
-            credit_number = EXCLUDED.credit_number,
-            amount = EXCLUDED.amount,
-            term = EXCLUDED.term,
-            rate = EXCLUDED.rate;
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE 
+            request_id = VALUES(request_id),
+            identification_number = VALUES(identification_number),
+            date = VALUES(date),
+            request_json = VALUES(request_json),
+            response_json = VALUES(response_json),
+            status = VALUES(status),
+            credit_number = VALUES(credit_number),
+            amount = VALUES(amount),
+            term = VALUES(term),
+            rate = VALUES(rate);
         `;
 
         const values = [
