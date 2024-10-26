@@ -35,7 +35,7 @@ console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
 
         console.log("NewImage:", newImage);
         const disbursement_id = newImage.DISBURSEMENT_ID.S;
-        //const request_id = newImage.REQUEST_ID.S;
+        const request_id = newImage.REQUEST_ID.S;
         const date = newImage.DATE.S;
         const identification_number = newImage.ID_NUMBER.S;
         const request = JSON.stringify(newImage.REQUEST.S);
