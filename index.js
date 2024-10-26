@@ -28,6 +28,7 @@ console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
   try {
     // Conectar a la base de datos
     await client.connect();
+    console.log("Conexión a PostgreSQL exitosa");
 
     for (const record of event.Records) {
       if (record.eventName === 'INSERT' || record.eventName === 'MODIFY') {
@@ -63,7 +64,8 @@ console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
         ];
 
         // Ejecutar la consulta en PostgreSQL
-        await client.query(query, values);
+        const result = await client.query(query, values);
+        console.log("Resultado de la inserción:", result);
       }
     }
 
@@ -73,5 +75,6 @@ console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
     return { statusCode: 500, body: "Error processing records" };
   } finally {
     await client.end(); // Cerrar la conexión con la base de datos
+    console.log("Conexión cerrada");
   }
 };
