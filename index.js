@@ -38,8 +38,8 @@ console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
         const request_id = newImage.REQUEST_ID.S;
         const date = newImage.DATE.S;
         const identification_number = newImage.ID_NUMBER.S;
-        const request = JSON.stringify(newImage.REQUEST.S);
-        const response = JSON.stringify(newImage.RESPONSE.S);
+        const request_json = JSON.stringify(newImage.REQUEST.S);
+        const response_json = JSON.stringify(newImage.RESPONSE.S);
         const status = newImage.STATUS.S;
         const credit_number = maskCreditNumber(newImage.CREDIT_NUMBER.S);
         const amount = parseFloat(newImage.AMOUNT.S);
@@ -58,7 +58,7 @@ console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
         `;
 
         const values = [
-          disbursement_id, request_id, identification_number, date, request, response,
+          disbursement_id, request_id, identification_number, date, request_json, response_json,
           status, credit_number, amount, term, rate
         ];
 
