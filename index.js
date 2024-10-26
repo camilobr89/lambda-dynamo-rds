@@ -48,14 +48,24 @@ console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
         const rate = parseFloat(newImage.RATE.S);
         console.log("Extracted values:", disbursement_id, request_id, date, identification_number, status); 
 
-        // Query para insertar los datos en la tabla disbursements
         const query = `
           INSERT INTO disbursements (
             disbursement_id, request_id, identification_number, date, request_json, response_json, 
             status, credit_number, amount, term, rate
           )
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-          ON CONFLICT (disbursement_id) DO NOTHING;
+          ON CONFLICT (disbursement_id) 
+          DO UPDATE SET 
+            request_id = EXCLUDED.request_id,
+            identification_number = EXCLUDED.identification_number,
+            date = EXCLUDED.date,
+            request_json = EXCLUDED.request_json,
+            response_json = EXCLUDED.response_json,
+            status = EXCLUDED.status,
+            credit_number = EXCLUDED.credit_number,
+            amount = EXCLUDED.amount,
+            term = EXCLUDED.term,
+            rate = EXCLUDED.rate;
         `;
 
         const values = [
