@@ -27,8 +27,6 @@ console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
 
   try {
     // Conectar a la base de datos
-    await client.connect();
-    // Conectar a la base de datos
     client = await mysql.createConnection(dbConfig);
     console.log("Conexión exitosa con MySQL");
 
