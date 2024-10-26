@@ -23,12 +23,14 @@ const maskCreditNumber = (creditNumber) => {
 // Lambda Handler
 exports.handler = async (event) => {
 console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
-  const client = new mysql(dbConfig);
+  let client
 
   try {
     // Conectar a la base de datos
     await client.connect();
-    console.log("Conexión a PostgreSQL exitosa");
+    // Conectar a la base de datos
+    client = await mysql.createConnection(dbConfig);
+    console.log("Conexión exitosa con MySQL");
 
     for (const record of event.Records) {
       if (record.eventName === 'INSERT' || record.eventName === 'MODIFY') {
