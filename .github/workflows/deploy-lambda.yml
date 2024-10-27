@@ -16,9 +16,13 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-      # Crear el archivo .zip con el código de la Lambda
+    # Compilar TypeScript a JavaScript
+    - name: Compile TypeScript
+      run: npm run build
+
+    # Crear el archivo .zip con el código de la Lambda desde la carpeta dist
     - name: Create zip file
-      run: zip -r function.zip index.js node_modules/
+      run: zip -r function.zip dist/* node_modules/
 
     - name: Deploy to AWS Lambda
       uses: appleboy/lambda-action@master

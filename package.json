@@ -2,10 +2,50 @@
   "name": "lambda-postgres",
   "version": "1.0.0",
   "description": "Lambda function for connecting to PostgreSQL",
-  "main": "index.js",
+  "main": "handler.ts",
+  "scripts": {
+    "build": "tsc",
+    "test:file": "mocha --timeout 10000 --require ts-node/register",
+    "format": "prettier --write .",
+    "test:only": "npm run test:file -- 'test/**/*.spec.ts'",
+    "test": "npm run test:only",
+    "coverage": "nyc _mocha --timeout 10000 --require ts-node/register 'test/**/*.spec.ts'",
+    "coverage:report": "nyc npm run test report --reporter=lcov --reporter=text",
+    "coverage:web": "npm run coverage && http-serve coverage/",
+    "debug": "DEBUG=* node ./build",
+    "lint": "eslint src/ --ext .ts",
+    "lint:fix": "npm run lint -- --fix"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.122",
+    "@types/chai": "^4.3.6",
+    "@types/debug": "^4.1.9",
+    "@types/jest": "^29.5.5",
+    "@types/node": "^18.0.1",
+    "@types/sinon": "^10.0.17",
+    "@typescript-eslint/eslint-plugin": "^5.54.1",
+    "chai": "^4.3.10",
+    "eslint": "^8.35.0",
+    "eslint-config-standard-with-typescript": "^34.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.6.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "http-serve": "^1.0.1",
+    "mocha": "^10.2.0",
+    "nyc": "^15.1.0",
+    "prettier": "^3.3.3",
+    "sinon": "^16.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.0"
+  },
   "dependencies": {
-    "aws-sdk": "^2.1691.0",
+    "@aws-sdk/client-dynamodb": "^3.421.0",
+    "@aws-sdk/util-dynamodb": "^3.421.0",
+    "aws-sdk": "^2.1465.0",
     "mysql2": "^3.11.3",
-    "pg": "^8.7.1"
+    "debug": "^4.3.4"
   }
 }
