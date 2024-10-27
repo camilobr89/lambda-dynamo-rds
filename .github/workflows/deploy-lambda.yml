@@ -21,7 +21,7 @@ jobs:
 
     - name: Create zip file
       run: |
-        cd dist
+        cd build
         zip -r ../function.zip ./*
         cd ..
         zip -r function.zip node_modules/
