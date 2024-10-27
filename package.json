@@ -4,6 +4,7 @@
   "description": "Lambda function for connecting to PostgreSQL",
   "main": "index.js",
   "dependencies": {
+    "aws-sdk": "^2.1691.0",
     "mysql2": "^3.11.3",
     "pg": "^8.7.1"
   }
