@@ -23,7 +23,7 @@ jobs:
     - name: Create zip file
       run: |
         cp -r build/* .
-        zip -r function.zip index.js models/ services/ utils/ node_modules/
+        zip -r function.zip build index.js node_modules/
 
     - name: Deploy to AWS Lambda
       uses: appleboy/lambda-action@master
