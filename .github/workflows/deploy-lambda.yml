@@ -7,18 +7,31 @@ on:
 
 jobs:
   deploy:
-    name: Deploy Lambda
-    with:
-      project-name: 'bbog-rlb-dynamo-stream-function'  # Nombre del proyecto
-      function-name: 'bbog-rlb-dynamo-stream-function'  # Nombre de la función Lambda
-      aws-region: us-east-2  # Cambia esto a tu región
-      node-version: 18.x  # Versión de Node.js
-      files-to-compress: 'node_modules build package.json'  # Archivos para empaquetar
-      function-handler: build/src/index.handler  # Ruta al handler compilado
-      function-memory-size: 128  # Tamaño de memoria para la función
-      function-runtime: nodejs18.x  # Runtime de AWS Lambda
-      continuous-deployment: true
-    secrets:
-      aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    runs-on: ubuntu-latest
 
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: npm install
+
+    # Compilar TypeScript a JavaScript
+    - name: Compile TypeScript
+      run: npm run build
+
+    # Crear el archivo .zip con el código de la Lambda desde la carpeta build/src
+    - name: Create zip file
+      run: zip -r function.zip build/src/* node_modules/
+
+    - name: Deploy to AWS Lambda
+      uses: appleboy/lambda-action@master
+      with:
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_region: 'us-east-2'  # Cambia esto a tu región
+        function_name: 'bbog-rlb-dynamo-stream-function'  # Nombre de tu Lambda
+        function_handler: build/src/index.handler  # Ruta al handler compilado
+        zip_file: 'function.zip'
+        runtime: 'nodejs18.x'  # Versión del runtime de Node.js en AWS Lambda
+        memory_size: 128  # Tamaño de memoria para la función
