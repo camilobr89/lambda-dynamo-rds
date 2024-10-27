@@ -20,13 +20,11 @@ jobs:
     - name: Compile TypeScript
       run: npm run build
 
-    # Crear el archivo .zip con el código de la Lambda desde la carpeta dist
-    - name: Create zip file
-      run: zip -r function.zip build/* node_modules/
-
     - name: Deploy to AWS Lambda
       uses: appleboy/lambda-action@master
       with:
+        files-to-compress: 'node_modules build package.json'
+        function-handler: ./build/src/index.handler
         aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws_region: 'us-east-2'  # Cambia esto a tu región
