@@ -18,8 +18,7 @@ jobs:
       function-memory-size: 128  # Tamaño de memoria para la función
       function-runtime: nodejs18.x  # Runtime de AWS Lambda
       continuous-deployment: true
-
-      secrets:
-        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    secrets:
+      aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
