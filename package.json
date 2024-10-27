@@ -2,7 +2,7 @@
   "name": "lambda-postgres",
   "version": "1.0.0",
   "description": "Lambda function for connecting to PostgreSQL",
-  "main": "handler.ts",
+  "main": "index.ts",
   "scripts": {
     "build": "tsc",
     "test:file": "mocha --timeout 10000 --require ts-node/register",
