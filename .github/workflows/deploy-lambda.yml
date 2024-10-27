@@ -27,7 +27,7 @@ jobs:
     - name: Deploy to AWS Lambda
       uses: appleboy/lambda-action@master
       with:
-        function-handler: ./build/src/index.handler
+        function-handler: build/src/index.handler
         aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws_region: 'us-east-2'  # Cambia esto a tu región
