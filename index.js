@@ -1,15 +1,17 @@
-const AWS = require('aws-sdk');
 
-// Configuración del cliente de AWS para la Data API de RDS
-const rdsdataservice = new AWS.RDSDataService({
-  region: 'us-east-2' // Cambia esto a la región de tu Aurora
-});
+const mysql = require('mysql2/promise');
 
-// ARN del clúster Aurora y ARN del secreto en Secrets Manager
+// El resto del código sigue igual
+
+
+// Configuración de PostgreSQL desde variables de entorno
 const dbConfig = {
-  resourceArn: process.env.AURORA_RESOURCE_ARN, // ARN del clúster Aurora
-  secretArn: process.env.SECRETS_MANAGER_ARN,   // ARN de Secrets Manager
-  database: process.env.DB_NAME                 // Nombre de la base de datos
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+  ssl: { rejectUnauthorized: false }
 };
 
 // Función para enmascarar el número de crédito
@@ -20,9 +22,14 @@ const maskCreditNumber = (creditNumber) => {
 
 // Lambda Handler
 exports.handler = async (event) => {
-  console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
+console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
+  let client
 
   try {
+    // Conectar a la base de datos
+    client = await mysql.createConnection(dbConfig);
+    console.log("Conexión exitosa con MySQL");
+
     for (const record of event.Records) {
       if (record.eventName === 'INSERT' || record.eventName === 'MODIFY') {
         const newImage = record.dynamodb.NewImage;
@@ -39,14 +46,14 @@ exports.handler = async (event) => {
         const amount = parseFloat(newImage.AMOUNT.S);
         const term = parseInt(newImage.TERM.S, 10);
         const rate = parseFloat(newImage.RATE.S);
-        console.log("Extracted values:", disbursement_id, request_id, date, identification_number, status);
+        console.log("Extracted values:", disbursement_id, request_id, date, identification_number, status); 
 
-        const sqlStatement = `
+        const query = `
           INSERT INTO disbursements (
             disbursement_id, request_id, identification_number, date, request_json, response_json, 
             status, credit_number, amount, term, rate
           )
-          VALUES (:disbursement_id, :request_id, :identification_number, :date, :request_json, :response_json, :status, :credit_number, :amount, :term, :rate)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON DUPLICATE KEY UPDATE 
             request_id = VALUES(request_id),
             identification_number = VALUES(identification_number),
@@ -60,27 +67,13 @@ exports.handler = async (event) => {
             rate = VALUES(rate);
         `;
 
-        // Ejecuta la consulta usando la Data API
-        const result = await rdsdataservice.executeStatement({
-          resourceArn: dbConfig.resourceArn,
-          secretArn: dbConfig.secretArn,
-          database: dbConfig.database,
-          sql: sqlStatement,
-          parameters: [
-            { name: 'disbursement_id', value: { stringValue: disbursement_id }},
-            { name: 'request_id', value: { stringValue: request_id }},
-            { name: 'identification_number', value: { stringValue: identification_number }},
-            { name: 'date', value: { stringValue: date }},
-            { name: 'request_json', value: { stringValue: request_json }},
-            { name: 'response_json', value: { stringValue: response_json }},
-            { name: 'status', value: { stringValue: status }},
-            { name: 'credit_number', value: { stringValue: credit_number }},
-            { name: 'amount', value: { doubleValue: amount }},
-            { name: 'term', value: { longValue: term }},
-            { name: 'rate', value: { doubleValue: rate }}
-          ]
-        }).promise();
+        const values = [
+          disbursement_id, request_id, identification_number, date, request_json, response_json,
+          status, credit_number, amount, term, rate
+        ];
 
+        // Ejecutar la consulta en PostgreSQL
+        const result = await client.query(query, values);
         console.log("Resultado de la inserción:", result);
       }
     }
@@ -89,5 +82,8 @@ exports.handler = async (event) => {
   } catch (error) {
     console.error('Error processing DynamoDB stream:', error);
     return { statusCode: 500, body: "Error processing records" };
+  } finally {
+    await client.end(); // Cerrar la conexión con la base de datos
+    console.log("Conexión cerrada");
   }
 };
