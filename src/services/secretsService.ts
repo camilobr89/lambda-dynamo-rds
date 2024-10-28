@@ -4,6 +4,7 @@ const client = new SecretsManagerClient({ region: 'us-west-2' });
 
 
 export const getSecret = async (secretName: string) => {
+console.log("getSecret ~ secretName:", secretName)
 
   try {
     const command = new GetSecretValueCommand({ SecretId: secretName });
