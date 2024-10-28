@@ -1,6 +1,6 @@
 import { DynamoDBStreamEvent } from 'aws-lambda';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
-import { insertOrUpdateDisbursement } from './services/dbService';
+import { insertDisbursement } from './services/dbService';
 import { maskCreditNumber } from './utils/maskCreditNumber';
 import { IDisbursements } from './models/IDisbursements';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
@@ -10,7 +10,7 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
 
   try {
     for (const record of event.Records) {
-      if (record.eventName === 'INSERT' || record.eventName === 'MODIFY') {
+      if (record.eventName === 'INSERT') {
        
         const newImage = record.dynamodb?.NewImage as { [key: string] : AttributeValue };
         if (!newImage) continue;
@@ -34,8 +34,8 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
         };
         console.log("Extracted values:", disbursement); 
 
-        await insertOrUpdateDisbursement(disbursement);
-        console.log("Resultado de la inserción:", insertOrUpdateDisbursement);
+        await insertDisbursement(disbursement);
+        console.log("Resultado de la inserción:", insertDisbursement);
       }
     }
 

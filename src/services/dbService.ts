@@ -7,11 +7,7 @@ let pool: Pool;
 
 const initializeDbConnection = async () => {
   if (!pool) {
-    // Obtén el secreto directamente, asegurándote de que contiene los datos de configuración exactos
-    const dbConfig = await getSecret(config.secretName); // Usa el nombre de tu secreto
-    console.log("Configuración de la base de datos: san", dbConfig);
-
-    // Crea el pool de conexiones utilizando directamente el secreto como dbConfig
+    const dbConfig = await getSecret(config.secretName);
     pool = mysql.createPool({
       user: dbConfig.username,
       host: dbConfig.host,
@@ -19,30 +15,17 @@ const initializeDbConnection = async () => {
       password: dbConfig.password,
       port: dbConfig.port,
     });
-    console.log("Conexión exitosa con MySQL");
   }
   return pool;
 };
 
-export const insertOrUpdateDisbursement = async (disbursement: IDisbursements): Promise<void> => {
+export const insertDisbursement = async (disbursement: IDisbursements): Promise<void> => {
   const pool = await initializeDbConnection();
-  console.log("pool:", pool);
   const query = `
     INSERT INTO disbursements (
       disbursement_id, request_id, identification_number, date, request_json, response_json,
       status, credit_number, amount, term, rate
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ON DUPLICATE KEY UPDATE 
-      request_id = VALUES(request_id),
-      identification_number = VALUES(identification_number),
-      date = VALUES(date),
-      request_json = VALUES(request_json),
-      response_json = VALUES(response_json),
-      status = VALUES(status),
-      credit_number = VALUES(credit_number),
-      amount = VALUES(amount),
-      term = VALUES(term),
-      rate = VALUES(rate);
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
 
   const values = [
@@ -59,6 +42,6 @@ export const insertOrUpdateDisbursement = async (disbursement: IDisbursements): 
     disbursement.rate,
   ];
 
-
   await pool.query(query, values);
 };
+
