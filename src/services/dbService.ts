@@ -15,12 +15,14 @@ const initializeDbConnection = async () => {
     pool = mysql.createPool({
       ...dbConfig,
     });
+    console.log("Conexión exitosa con MySQL");
   }
   return pool;
 };
 
 export const insertOrUpdateDisbursement = async (disbursement: IDisbursements): Promise<void> => {
-    console.log("Conexión exitosa con MySQL");
+  const pool = await initializeDbConnection();
+  console.log("pool:", pool);
   const query = `
     INSERT INTO disbursements (
       disbursement_id, request_id, identification_number, date, request_json, response_json,
@@ -53,6 +55,6 @@ export const insertOrUpdateDisbursement = async (disbursement: IDisbursements): 
     disbursement.rate,
   ];
 
-  const pool = await initializeDbConnection();
+
   await pool.query(query, values);
 };
