@@ -1,12 +1,19 @@
 import mysql, { Pool } from 'mysql2/promise';
-import { dbConfig } from '../config';
+import config from 'src/config';
 import { IDisbursements } from '../models/IDisbursements';
+import { getSecret } from './secretsService';
 
 let pool: Pool;
 
-const getPool = () => {
+const initializeDbConnection = async () => {
   if (!pool) {
-    pool = mysql.createPool(dbConfig);
+    // Obtén el secreto directamente, asegurándote de que contiene los datos de configuración exactos
+    const dbConfig = await getSecret(config.secretManager); // Usa el nombre de tu secreto
+
+    // Crea el pool de conexiones utilizando directamente el secreto como dbConfig
+    pool = mysql.createPool({
+      ...dbConfig,
+    });
   }
   return pool;
 };
@@ -45,6 +52,6 @@ export const insertOrUpdateDisbursement = async (disbursement: IDisbursements): 
     disbursement.rate,
   ];
 
-  const pool = getPool();
+  const pool = await initializeDbConnection();
   await pool.query(query, values);
 };
