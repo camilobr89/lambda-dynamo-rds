@@ -4,9 +4,10 @@ import { insertDisbursement } from './services/dbService';
 import { maskCreditNumber } from './utils/maskCreditNumber';
 import { IDisbursements } from './models/IDisbursements';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
+import { debug } from 'console';
 
 export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
-  console.log("DynamoDB Event:", JSON.stringify(event, null, 2));
+  debug("[START] DynamoDB Event: %s", JSON.stringify(event, null, 2));
 
   try {
     for (const record of event.Records) {
@@ -32,14 +33,14 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
           rate: unmarshalledData.RATE
           
         };
-        console.log("Extracted values:", disbursement); 
+        debug("[INFO] Inserting disbursement: %s", JSON.stringify(disbursement));
 
         await insertDisbursement(disbursement);
-        console.log("Resultado de la inserción:", insertDisbursement);
+        debug("[INFO] Disbursement inserted: %s", JSON.stringify(disbursement));
       }
     }
 
   } catch (error) {
-    console.error('Error processing DynamoDB stream:', error);
+    throw new Error('Error processing DynamoDB event: ' + error);
   }
 };
