@@ -9,6 +9,7 @@ const initializeDbConnection = async () => {
   if (!pool) {
     // Obtén el secreto directamente, asegurándote de que contiene los datos de configuración exactos
     const dbConfig = await getSecret(config.secretManager); // Usa el nombre de tu secreto
+    console.log("Configuración de la base de datos:", dbConfig);
 
     // Crea el pool de conexiones utilizando directamente el secreto como dbConfig
     pool = mysql.createPool({
