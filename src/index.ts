@@ -33,25 +33,14 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
           rate: unmarshalledData.RATE
           
         };
-        try {
-          debug("[INFO] Inserting disbursement: %s", JSON.stringify(disbursement));
-          await insertDisbursement(disbursement);
-          debug("[INFO] Disbursement inserted: %s", JSON.stringify(disbursement));
-        } catch (dbError: any) {
-          // Manejo de error específico de clave duplicada
-          if (dbError.code === 'ER_DUP_ENTRY') {
-            debug(`[WARN] Duplicate entry for disbursement_id: ${disbursement.disbursement_id}`);
-            // Podemos continuar sin lanzar una excepción para evitar reintentos
-          } else {
-            // Para otros errores, hacemos log y re-lanzamos el error para analizar el problema
-            debug(`[ERROR] Error inserting disbursement: ${dbError.message}`, dbError);
-            throw dbError; // Solo relanzamos si es un error diferente a clave duplicada
-          }
-        }
+        debug("[INFO] Inserting disbursement: %s", JSON.stringify(disbursement));
+
+        await insertDisbursement(disbursement);
+        debug("[INFO] Disbursement inserted: %s", JSON.stringify(disbursement));
       }
     }
+
   } catch (error) {
-    // Hacemos log de errores inesperados en el proceso de eventos
-    debug('[ERROR] Error processing DynamoDB event:', error);
+    throw new Error('Error processing DynamoDB event: ' + error);
   }
 };
