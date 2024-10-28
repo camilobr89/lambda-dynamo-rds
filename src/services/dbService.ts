@@ -13,7 +13,11 @@ const initializeDbConnection = async () => {
 
     // Crea el pool de conexiones utilizando directamente el secreto como dbConfig
     pool = mysql.createPool({
-      ...dbConfig,
+      user: dbConfig.username,
+      host: dbConfig.host,
+      database: dbConfig.dbname,
+      password: dbConfig.password,
+      port: dbConfig.port,
     });
     console.log("Conexión exitosa con MySQL");
   }
