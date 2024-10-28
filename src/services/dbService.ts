@@ -1,5 +1,5 @@
 import mysql, { Pool } from 'mysql2/promise';
-import config from 'src/config';
+import config from '../config';
 import { IDisbursements } from '../models/IDisbursements';
 import { getSecret } from './secretsService';
 
