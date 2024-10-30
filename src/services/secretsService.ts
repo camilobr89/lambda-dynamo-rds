@@ -1,10 +1,8 @@
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 
-const client = new SecretsManagerClient({ region: 'us-east-2' });
-
+const client = new SecretsManagerClient({ region: 'us-east-1' });
 
 export const getSecret = async (secretName: string) => {
-
   try {
     const command = new GetSecretValueCommand({ SecretId: secretName });
     const response = await client.send(command);
