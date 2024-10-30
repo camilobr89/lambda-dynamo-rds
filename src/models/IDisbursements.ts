@@ -7,6 +7,7 @@ export interface IDisbursements {
     response_json: string;
     status: string;
     credit_number: string | null;
+    product: string;
     amount: number;
     term: number;
     rate: number;

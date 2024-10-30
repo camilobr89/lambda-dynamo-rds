@@ -1,55 +1,84 @@
 import { DynamoDBStreamEvent } from 'aws-lambda';
-import { unmarshall } from '@aws-sdk/util-dynamodb';
+import { DynamoDbUtils } from './utils/dynamoDbUtils';
 import { insertDisbursement } from './services/dbService';
-import { maskCreditNumber } from './utils/maskCreditNumber';
 import { IDisbursements } from './models/IDisbursements';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
 import { debug } from 'console';
 
-export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
-  debug("[START] DynamoDB Event: %s", JSON.stringify(event, null, 2));
+export class DynamoDBStreamHandler {
+ 
+  /**
+   * Main handler method for processing DynamoDB Stream events
+   */
+  public async handler(event: DynamoDBStreamEvent): Promise<void> {
+    debug("[START] DynamoDB Event: %s", JSON.stringify(event, null, 2));
 
-  try {
-    for (const record of event.Records) {
-      if (record.eventName === 'INSERT') {
-       
-        const newImage = record.dynamodb?.NewImage as { [key: string] : AttributeValue };
-        if (!newImage) continue;
+    try {
+      await this.processRecords(event.Records);
+    } catch (generalError) {
+      debug('Error processing DynamoDB event:', generalError);
+      throw new Error('Error processing DynamoDB event: ' + generalError);
+    }
+  }
 
-        // Deserializar el objeto DynamoDB usando unmarshall
-        const unmarshalledData = unmarshall(newImage);
-
-        const disbursement: IDisbursements = {
-          disbursement_id: unmarshalledData.DISBURSEMENT_ID,
-          request_id: unmarshalledData.REQUEST_ID,
-          identification_number: unmarshalledData.ID_NUMBER,
-          date: unmarshalledData.DATE,
-          request_json: JSON.stringify(unmarshalledData.REQUEST),
-          response_json: JSON.stringify(unmarshalledData.RESPONSE),
-          status: unmarshalledData.STATUS,
-          credit_number: maskCreditNumber(unmarshalledData.CREDIT_NUMBER),
-          amount: unmarshalledData.AMOUNT,
-          term: unmarshalledData.TERM,
-          rate: unmarshalledData.RATE
-          
-        };
-        try {
-          debug("[INFO] Inserting disbursement: %s", JSON.stringify(disbursement));
-          await insertDisbursement(disbursement);
-          debug("[INFO] Disbursement inserted: %s", JSON.stringify(disbursement));
-        } catch (dbError: any) {
-          // Manejar errores específicos de base de datos
-          if (dbError.code === 'ER_DUP_ENTRY') {
-            debug(`Duplicate entry for disbursement_id: ${disbursement.disbursement_id}. Skipping.`);
-          } else {
-            debug(`Database error inserting disbursement_id: ${disbursement.disbursement_id}`, dbError);
-            throw new Error(`Critical database error: ${dbError.message}`);
-          }
-        }
+  /**
+   * Process all records in the event
+   */
+  private async processRecords(records: DynamoDBStreamEvent['Records']): Promise<void> {
+    for (const record of records) {
+      if (this.isValidEventType(record.eventName)) {
+        await this.processSingleRecord(record);
       }
     }
-  } catch (generalError) {
-    debug('Error processing DynamoDB event:', generalError);
-    throw new Error('Error processing DynamoDB event: ' + generalError);
   }
+
+  /**
+   * Check if the event type is valid for processing
+   */
+  private isValidEventType(eventName: string | undefined): boolean {
+    return eventName === 'INSERT' || eventName === 'MODIFY';
+  }
+
+  /**
+   * Process a single DynamoDB record
+   */
+  private async processSingleRecord(record: DynamoDBStreamEvent['Records'][0]): Promise<void> {
+    const newImage = record.dynamodb?.NewImage as { [key: string]: AttributeValue };
+    if (!newImage) return;
+
+    const disbursement: IDisbursements = DynamoDbUtils.unmarshallDisbursement(newImage);
+    await this.insertDisbursementWithRetry(disbursement);
+  }
+
+  /**
+   * Insert disbursement with error handling
+   */
+  private async insertDisbursementWithRetry(disbursement: IDisbursements): Promise<void> {
+    try {
+      debug("[INFO] Inserting disbursement: %s", JSON.stringify(disbursement));
+      await insertDisbursement(disbursement);
+      debug("[INFO] Disbursement inserted: %s", JSON.stringify(disbursement));
+    } catch (dbError: any) {
+      await this.handleDatabaseError(dbError, disbursement);
+    }
+  }
+
+  /**
+   * Handle database errors during insertion
+   */
+  private async handleDatabaseError(error: any, disbursement: IDisbursements): Promise<void> {
+    if (error.code === 'ER_DUP_ENTRY') {
+      debug(`Duplicate entry for disbursement_id: ${disbursement.disbursement_id}. Skipping.`);
+      return;
+    }
+    
+    debug(`Database error inserting disbursement_id: ${disbursement.disbursement_id}`, error);
+    throw new Error(`Critical database error: ${error.message}`);
+  }
+}
+
+// Lambda handler function
+export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
+  const streamHandler = new DynamoDBStreamHandler();
+  return await streamHandler.handler(event);
 };
