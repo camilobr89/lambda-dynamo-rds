@@ -35,33 +35,33 @@ export class DynamoDbUtils {
   }
 
   /**
-   * Ofusca los campos especificados en el objeto `data` sin importar la profundidad.
+   * Ofusca los campos especificados en el objeto `data`, incluyendo todos los niveles de profundidad.
    */
   static obfuscateDataForLogs(data: any): any {
     const fieldsToObfuscate = (config.logs.fieldsToObfuscate || '').split(',').map(field => field.trim());
 
-    // Función recursiva para aplicar enmascaramiento profundo
-    const obfuscateRecursively = (data: any): any => {
-      if (typeof data !== 'object' || data === null) {
-        return data;
+    const obfuscateRecursively = (obj: any): any => {
+      if (typeof obj !== 'object' || obj === null) {
+        return obj;
       }
 
-      const obfuscatedData = Array.isArray(data) ? [] : {};
+      const obfuscatedData = Array.isArray(obj) ? [] : {};
 
-      for (const key in data) {
-        if (data.hasOwnProperty(key)) {
-          // Si el campo debe ofuscarse y es una cadena, aplicar enmascaramiento
-          if (fieldsToObfuscate.includes(key) && typeof data[key] === 'string') {
-            obfuscatedData[key] = DynamoDbUtils.maskField(data[key]);
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          // Verificar si el campo debe enmascararse y si es un objeto { "S": "valor" }
+          if (fieldsToObfuscate.includes(key) && typeof obj[key] === 'object' && obj[key].S) {
+            obfuscatedData[key] = { S: DynamoDbUtils.maskField(obj[key].S) };
           }
-          // Si el valor es un objeto o array, llamar recursivamente
-          else if (typeof data[key] === 'object') {
-            obfuscatedData[key] = obfuscateRecursively(data[key]);
+          // Si es un objeto o array, procesarlo recursivamente
+          else if (typeof obj[key] === 'object') {
+            obfuscatedData[key] = obfuscateRecursively(obj[key]);
           } else {
-            obfuscatedData[key] = data[key];
+            obfuscatedData[key] = obj[key];
           }
         }
       }
+
       return obfuscatedData;
     };
 

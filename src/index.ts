@@ -13,7 +13,9 @@ export class DynamoDBStreamHandler {
    */
   public async handler(event: DynamoDBStreamEvent): Promise<void> {
     const obfuscatedEvent = DynamoDbUtils.obfuscateDataForLogs(event);
+
     debug("[START] DynamoDB Event (obfuscated): %s", JSON.stringify(obfuscatedEvent, null, 2));
+
 
 
     try {
