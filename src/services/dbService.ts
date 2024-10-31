@@ -8,7 +8,7 @@ let pool: Pool;
 const initializeDbConnection = async () => {
   if (!pool) {
     const dbConfig = await getSecret(config.secretName);
-    console.log("🚀 ~ initializeDbConnection ~ dbConfig:", dbConfig)
+    console.log("initializeDbConnection ~ dbConfig:", dbConfig)
     pool = mysql.createPool({
       user: dbConfig.username,
       host: dbConfig.host,
