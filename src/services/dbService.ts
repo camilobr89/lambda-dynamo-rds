@@ -7,16 +7,15 @@ let pool: Pool;
 
 const initializeDbConnection = async () => {
   if (!pool) {
-    const dbConfig = await getSecret(config.secretName);
-    console.log("initializeDbConnection ~ dbConfig:", dbConfig)
     pool = mysql.createPool({
-      user: dbConfig.username,
-      host: dbConfig.host,
-      database: dbConfig.dbname,
-      password: dbConfig.password,
-      port: dbConfig.port,
+      user: config.user,
+      host: config.host,
+      database: config.database,
+      password: config.password,
+      port: config.port,
     });
   }
+  console.log('Pool:', pool);
   return pool;
 };
 
