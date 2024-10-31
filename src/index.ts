@@ -4,6 +4,7 @@ import { insertDisbursement } from './services/dbService';
 import { IDisbursements } from './models/IDisbursements';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
 import { debug } from 'console';
+import { maskCreditNumber } from './utils/maskCreditNumber';
 
 export class DynamoDBStreamHandler {
  
@@ -11,7 +12,7 @@ export class DynamoDBStreamHandler {
    * Main handler method for processing DynamoDB Stream events
    */
   public async handler(event: DynamoDBStreamEvent): Promise<void> {
-    debug("[START] DynamoDB Event: %s", JSON.stringify(event, null, 2));
+    debug("[START] DynamoDB Event: %s", maskCreditNumber(JSON.stringify(event, null, 2)));
 
     try {
       await this.processRecords(event.Records);
