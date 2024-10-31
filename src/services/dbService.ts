@@ -20,6 +20,7 @@ const initializeDbConnection = async () => {
 };
 
 export const insertDisbursement = async (disbursement: IDisbursements): Promise<void> => {
+  console.log("insertOrUpdateDisbursement ~ disbursement:", disbursement)
   const pool = await initializeDbConnection();
   const query = `
     INSERT INTO disbursements (
