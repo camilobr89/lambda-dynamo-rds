@@ -27,15 +27,15 @@ export class DynamoDbUtils {
     };
   }
 
-  /**
+   /**
    * Enmascara un valor completo con asteriscos.
    */
-  static maskField(value: string): string {
+   static maskField(value: string): string {
     return '*'.repeat(value.length);
   }
 
   /**
-   * Ofusca los campos especificados en el objeto `data`, incluyendo todos los niveles de profundidad.
+   * Ofusca los campos especificados en el objeto `data`, manejando estructuras tanto simples como anidadas.
    */
   static obfuscateDataForLogs(data: any): any {
     const fieldsToObfuscate = (config.logs.fieldsToObfuscate || '').split(',').map(field => field.trim());
@@ -49,8 +49,12 @@ export class DynamoDbUtils {
 
       for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
-          // Verificar si el campo debe enmascararse y si es un objeto { "S": "valor" }
-          if (fieldsToObfuscate.includes(key) && typeof obj[key] === 'object' && obj[key].S) {
+          // Enmascarar si es un campo simple que debe ofuscarse y es una cadena
+          if (fieldsToObfuscate.includes(key) && typeof obj[key] === 'string') {
+            obfuscatedData[key] = DynamoDbUtils.maskField(obj[key]);
+          }
+          // Enmascarar si es un campo de DynamoDB { "S": "valor" } y debe ofuscarse
+          else if (fieldsToObfuscate.includes(key) && typeof obj[key] === 'object' && obj[key].S) {
             obfuscatedData[key] = { S: DynamoDbUtils.maskField(obj[key].S) };
           }
           // Si es un objeto o array, procesarlo recursivamente
