@@ -19,18 +19,13 @@ jobs:
     - name: Compile TypeScript
       run: npm run build
 
+    # Este es el cambio principal - ajustamos cómo se crea el zip
     - name: Create zip file
       run: |
-        # Primero copiamos el index.js de la carpeta lambda
-        cp lambda/index.js build/
-        
-        # Nos movemos a build y creamos el zip
-        cd build
-        zip -r ../function.zip .
-        
-        # Volvemos a la raíz y añadimos node_modules
-        cd ..
-        zip -ur function.zip node_modules/
+        cd build/src  # Vamos a la carpeta donde está el código compilado
+        zip -r ../../function.zip .  # Creamos el zip desde aquí
+        cd ../..
+        zip -ur function.zip node_modules/  # Añadimos los node_modules
 
     - name: Deploy to AWS Lambda
       uses: appleboy/lambda-action@master
@@ -39,7 +34,7 @@ jobs:
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws_region: 'us-east-2'
         function_name: 'bbog-rlb-dynamo-stream-function'
-        function_handler: 'index.handler'
+        function_handler: 'index.handler'  # Simplificamos el handler
         zip_file: 'function.zip'
         runtime: 'nodejs18.x'
         memory_size: 128
