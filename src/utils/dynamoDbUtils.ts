@@ -27,23 +27,44 @@ export class DynamoDbUtils {
     };
   }
 
+  /**
+   * Enmascara un valor completo con asteriscos.
+   */
   static maskField(value: string): string {
     return '*'.repeat(value.length);
   }
 
   /**
-   * Ofusca los campos especificados en el objeto data basado en la configuración.
+   * Ofusca los campos especificados en el objeto `data` sin importar la profundidad.
    */
-  static obfuscateDataForLogs(data: { [key: string]: any }): { [key: string]: any } {
+  static obfuscateDataForLogs(data: any): any {
     const fieldsToObfuscate = (config.logs.fieldsToObfuscate || '').split(',').map(field => field.trim());
-    
-    return Object.keys(data).reduce((acc, key) => {
-      if (fieldsToObfuscate.includes(key) && typeof data[key] === 'string') {
-        acc[key] = DynamoDbUtils.maskField(data[key]);
-      } else {
-        acc[key] = data[key];
+
+    // Función recursiva para aplicar enmascaramiento profundo
+    const obfuscateRecursively = (data: any): any => {
+      if (typeof data !== 'object' || data === null) {
+        return data;
       }
-      return acc;
-    }, {} as { [key: string]: any });
+
+      const obfuscatedData = Array.isArray(data) ? [] : {};
+
+      for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+          // Si el campo debe ofuscarse y es una cadena, aplicar enmascaramiento
+          if (fieldsToObfuscate.includes(key) && typeof data[key] === 'string') {
+            obfuscatedData[key] = DynamoDbUtils.maskField(data[key]);
+          }
+          // Si el valor es un objeto o array, llamar recursivamente
+          else if (typeof data[key] === 'object') {
+            obfuscatedData[key] = obfuscateRecursively(data[key]);
+          } else {
+            obfuscatedData[key] = data[key];
+          }
+        }
+      }
+      return obfuscatedData;
+    };
+
+    return obfuscateRecursively(data);
   }
 }
