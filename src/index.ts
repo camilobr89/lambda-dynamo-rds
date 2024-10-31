@@ -12,7 +12,9 @@ export class DynamoDBStreamHandler {
    * Main handler method for processing DynamoDB Stream events
    */
   public async handler(event: DynamoDBStreamEvent): Promise<void> {
-    debug("[START] DynamoDB Event: %s", JSON.stringify(event, null, 2));
+    const obfuscatedEvent = DynamoDbUtils.obfuscateDataForLogs(JSON.parse(JSON.stringify(event)));
+    debug("[START] DynamoDB Event (obfuscated): %s", JSON.stringify(obfuscatedEvent, null, 2));
+
 
     try {
       await this.processRecords(event.Records);
@@ -48,6 +50,9 @@ export class DynamoDBStreamHandler {
     if (!newImage) return;
 
     const disbursement: IDisbursements = DynamoDbUtils.unmarshallDisbursement(newImage);
+    const obfuscatedDisbursement = DynamoDbUtils.obfuscateDataForLogs(disbursement);
+    debug("[INFO] Inserting disbursement (obfuscated): %s", JSON.stringify(obfuscatedDisbursement));
+
     await this.insertDisbursementWithRetry(disbursement);
   }
 

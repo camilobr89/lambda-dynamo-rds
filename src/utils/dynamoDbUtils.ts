@@ -1,6 +1,7 @@
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { IDisbursements } from '../models/IDisbursements';
+import config from '../config';
 
 export class DynamoDbUtils {
   static unmarshallDisbursement(newImage: { [key: string]: AttributeValue }): IDisbursements {
@@ -24,5 +25,25 @@ export class DynamoDbUtils {
       term: dataInLowerCase['term'],
       rate: dataInLowerCase['rate']
     };
+  }
+
+  static maskField(value: string): string {
+    return '*'.repeat(value.length);
+  }
+
+  /**
+   * Ofusca los campos especificados en el objeto data basado en la configuración.
+   */
+  static obfuscateDataForLogs(data: { [key: string]: any }): { [key: string]: any } {
+    const fieldsToObfuscate = (config.logs.fieldsToObfuscate || '').split(',').map(field => field.trim());
+    
+    return Object.keys(data).reduce((acc, key) => {
+      if (fieldsToObfuscate.includes(key) && typeof data[key] === 'string') {
+        acc[key] = DynamoDbUtils.maskField(data[key]);
+      } else {
+        acc[key] = data[key];
+      }
+      return acc;
+    }, {} as { [key: string]: any });
   }
 }
